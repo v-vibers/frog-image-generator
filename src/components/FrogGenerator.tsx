@@ -26,6 +26,7 @@ export default function FrogGenerator() {
 
   const [history, setHistory, syncStatus] = useStorage<GenerationHistory[]>('frog-history', [])
   const [prompt, setPrompt] = useState('')
+  const [color, setColor] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<ErrorType | null>(null)
   const [retryTimer, setRetryTimer] = useState<number | null>(null)
@@ -38,9 +39,12 @@ export default function FrogGenerator() {
     setRetryTimer(null)
 
     try {
+      const colorPrefix = color ? `A ${color} frog` : 'A frog'
+      const fullPrompt = `${colorPrefix} ${prompt}`
+
       const { output } = await client.run('black-forest-labs/flux-schnell', {
         input: {
-          prompt: `A frog ${prompt}`,
+          prompt: fullPrompt,
           width: 1024,
           height: 1024
         }
@@ -48,7 +52,7 @@ export default function FrogGenerator() {
 
       const imageUrl = output[0] as string
       const newEntry: GenerationHistory = {
-        prompt: `A frog ${prompt}`,
+        prompt: fullPrompt,
         imageUrl,
         timestamp: Date.now()
       }
@@ -129,6 +133,25 @@ export default function FrogGenerator() {
 
       <main className="main-content">
         <div className="generator-section">
+          <div className="color-selector">
+            <label className="color-label">Frog Color:</label>
+            <div className="color-options">
+              <button
+                onClick={() => setColor('')}
+                className={`color-btn ${color === '' ? 'active' : ''}`}
+                disabled={loading || retryTimer !== null}
+              >
+                Default
+              </button>
+              <button
+                onClick={() => setColor('green')}
+                className={`color-btn color-btn-green ${color === 'green' ? 'active' : ''}`}
+                disabled={loading || retryTimer !== null}
+              >
+                Green
+              </button>
+            </div>
+          </div>
           <div className="input-section">
             <input
               type="text"
